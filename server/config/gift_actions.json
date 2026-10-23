@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "gifts": {
+    "tiny-diny": { "action": "dance", "dance": "jamal" },
+    "dinosaur": { "action": "dance", "dance": "jamal" },
+    "dinossauro": { "action": "dance", "dance": "jamal" },
+    "doughnut": { "action": "dance", "dance": "confidenceholic" },
+    "donut": { "action": "dance", "dance": "confidenceholic" },
+    "rosquinha": { "action": "dance", "dance": "confidenceholic" },
+    "rose": { "action": "thanks_rose" },
+    "rosa": { "action": "thanks_rose" }
+  }
+}

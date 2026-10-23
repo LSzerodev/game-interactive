@@ -1,0 +1,46 @@
+# dependências e ambientes
+node_modules/
+server/voice/venv-*/
+game/.godot/
+
+# segredos e dados locais (chaves de API, voz clonada, prompt personalizado, logs)
+server/.env
+server/private/
+server/runs/
+server/assets/
+server/voice/*.log
+
+# arquivos de trabalho do autor (fontes de modelos, áudios de voz, mockups)
+audio-wav/
+audio-game/
+personagens,assets, etc/
+ref-game-3d/
+
+# o executável passa de 100 MB (limite do GitHub): publique em Releases, não no repositório
+Live3D.exe
+*.zip
+
+# --- reforco de seguranca: nunca publicar ---
+server/.env.*
+!server/.env.example
+.env
+*.env
+server/voice/*.log
+server/voice/*.wav
+*.log
+*.wav
+!game/**/*.wav
+*.pem
+*.key
+*.pfx
+*.p12
+*.keystore
+*.jks
+id_rsa*
+.claude/
+.vscode/
+.idea/
+.mcp.json
+settings.local.json
+Thumbs.db
+desktop.ini

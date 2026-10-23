@@ -1,0 +1,17 @@
+{
+  "name": "reload-game-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Servidor da live: TikTok -> fila de fala (IA + TTS) -> Godot 4 via WebSocket",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test test/core.test.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "socks-proxy-agent": "^8.0.5",
+    "tiktok-live-connector": "^2.0.0",
+    "ws": "^8.18.0"
+  }
+}

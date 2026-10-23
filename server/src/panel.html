@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live 3D - Painel</title>
+<style>
+  :root { color-scheme: dark; --bg:#0f1115; --card:#181b22; --line:#2a2f3a; --fg:#e8eaf0; --mut:#8b93a4; --ok:#4ade80; --bad:#f87171; --warn:#fbbf24; --info:#93c5fd; }
+  * { box-sizing:border-box }
+  body { margin:0; font:14px system-ui,sans-serif; background:var(--bg); color:var(--fg); padding:14px; }
+  main { max-width:1100px; margin:0 auto; display:grid; gap:12px; grid-template-columns: 340px 1fr; align-items:start }
+  @media (max-width:900px) { main { grid-template-columns: 1fr } }
+  .col { display:grid; gap:12px }
+  section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  h1 { font-size:19px; margin:0 0 2px } h2 { font-size:12px; margin:0 0 9px; color:var(--mut); text-transform:uppercase; letter-spacing:.06em }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+  input,select,button { font:inherit; padding:7px 9px; border-radius:8px; border:1px solid var(--line); background:#0f1115; color:var(--fg) }
+  button { cursor:pointer; background:#2563eb; border-color:#2563eb } button.sec { background:transparent; border-color:var(--line) }
+  .dot { width:10px; height:10px; border-radius:50%; display:inline-block; background:var(--bad); flex:none } .dot.on { background:var(--ok) } .dot.wait { background:var(--warn) }
+  .st { display:grid; grid-template-columns:auto 1fr; gap:6px 8px; align-items:center }
+  .st small { color:var(--mut) }
+  table { width:100%; border-collapse:collapse } td,th { text-align:left; padding:4px 3px; border-bottom:1px solid var(--line) } th { color:var(--mut); font-weight:500 }
+  .cnt { display:grid; grid-template-columns:repeat(3,1fr); gap:6px }
+  .cnt div { background:#0f1115; border:1px solid var(--line); border-radius:8px; padding:6px 8px } .cnt b { display:block; font-size:18px } .cnt span { color:var(--mut); font-size:11px }
+  #logbox { height:76vh; min-height:420px; overflow:auto; background:#0b0d11; border:1px solid var(--line); border-radius:8px; padding:6px; font:12.5px/1.45 ui-monospace,Consolas,monospace }
+  .l { display:grid; grid-template-columns:62px 62px 1fr; gap:8px; padding:1px 3px; border-radius:4px; word-break:break-word }
+  .l:hover { background:#161a22 } .l .t { color:var(--mut) } .l .k { font-weight:600 }
+  .l.ok .m { color:var(--ok) } .l.warn .m { color:var(--warn) } .l.error .m { color:var(--bad) }
+  .k-chat{color:#60a5fa}.k-gift{color:#f472b6}.k-join{color:#34d399}.k-like{color:#fb923c}.k-ia{color:#c084fc}.k-voz{color:#22d3ee}.k-fala{color:#a3e635}.k-dança{color:#facc15}.k-jogo{color:#94a3b8}.k-placar{color:#fbbf24}.k-tiktok{color:#e879f9}.k-config{color:#38bdf8}.k-erro{color:var(--bad)}
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px }
+  .chip { display:flex; gap:4px; align-items:center; background:#0f1115; border:1px solid var(--line); border-radius:99px; padding:2px 9px; cursor:pointer; user-select:none; font-size:12px }
+  .chip.off { opacity:.35 }
+  .hint { color:var(--mut); font-size:12px; margin-top:6px }
+  nav.tabs { max-width:1100px; margin:0 auto 12px; display:flex; gap:6px; flex-wrap:wrap; align-items:center }
+  nav.tabs button { background:transparent; border-color:var(--line); color:var(--mut) }
+  nav.tabs button.on { background:#2563eb; border-color:#2563eb; color:#fff }
+  nav.tabs .brand { font-weight:700; font-size:17px; margin-right:10px }
+  .page { max-width:1100px; margin:0 auto; display:grid; gap:12px }
+  .page[hidden], main[hidden] { display:none }
+  .page.narrow { max-width:760px }
+  .field { display:grid; gap:4px; margin-bottom:12px } .field[hidden] { display:none }
+  .field label { font-weight:600 } .field input, .field select { width:100% }
+  .field .help { color:var(--mut); font-size:12px }
+  .field .keyrow { display:flex; gap:6px } .field .keyrow input { flex:1 }
+  .field.check label { display:flex; gap:8px; align-items:center; font-weight:600 } .field.check input { width:auto }
+  textarea { font:12.5px/1.5 ui-monospace,Consolas,monospace; padding:8px 9px; border-radius:8px; border:1px solid var(--line); background:#0b0d11; color:var(--fg); width:100%; min-height:260px; resize:vertical }
+  .msg { font-size:13px; margin-top:8px; min-height:18px; white-space:pre-wrap } .msg.ok { color:var(--ok) } .msg.bad { color:var(--bad) }
+  .badge { font-size:11px; padding:1px 7px; border-radius:99px; border:1px solid var(--line); color:var(--mut); margin-left:6px }
+  .diag { border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:14px; background:#0f1115 }
+  .diag.error { border-color:var(--bad) } .diag.warn { border-color:var(--warn) } .diag.ok { border-color:#245c3a }
+  .diag .dh { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; color:var(--mut); font-size:12px }
+  .diag .it { margin:8px 0 } .diag .it b.ok { color:var(--ok) } .diag .it b.warn { color:var(--warn) } .diag .it b.error { color:var(--bad) }
+  .diag .detail { color:var(--mut); font-size:12.5px; margin:2px 0 0 22px }
+  .diag ol { margin:6px 0 0 22px; padding-left:18px; font-size:13px } .diag li { margin:3px 0 }
+  code.cp { display:block; margin:4px 0; padding:5px 8px; background:#0b0d11; border:1px solid var(--line); border-radius:6px; font:12.5px ui-monospace,Consolas,monospace; cursor:copy; white-space:pre-wrap; word-break:break-all }
+  code.cp:hover { border-color:var(--info) } code.in { background:#0b0d11; padding:1px 5px; border-radius:4px; font:12.5px ui-monospace,Consolas,monospace }
+  .models { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px } .models .chip small { color:var(--mut) } .models .chip.sel { border-color:var(--ok) }
+  footer { max-width:1100px; margin:18px auto 4px; color:var(--mut); font-size:12px; text-align:center }
+  footer a, .page a { color:var(--info) }
+</style>
+</head>
+<body>
+<nav class="tabs"><span class="brand">Live 3D</span><span id="tabs" style="display:contents"></span></nav>
+<main id="tab-live">
+  <div class="col">
+    <section>
+      <h1>Estado</h1>
+      <div class="st" style="margin-top:8px">
+        <span class="dot" id="dTk"></span><div>TikTok <small id="tk"></small></div>
+        <span class="dot" id="dGd"></span><div>Jogo (Godot) <small id="gd"></small></div>
+        <span class="dot" id="dIa"></span><div>IA <small id="ia"></small></div>
+        <span class="dot" id="dVz"></span><div>Voz <small id="vz"></small></div>
+      </div>
+      <div class="hint" id="up"></div>
+    </section>
+
+    <section>
+      <h2>Chegando do TikTok</h2>
+      <div class="cnt">
+        <div><b id="c_chat">0</b><span>comentários</span></div>
+        <div><b id="c_join">0</b><span>entradas</span></div>
+        <div><b id="c_gift">0</b><span>presentes</span></div>
+        <div><b id="c_like">0</b><span>curtidas</span></div>
+        <div><b id="c_share">0</b><span>shares</span></div>
+        <div><b id="c_ignored">0</b><span>ignorados</span></div>
+      </div>
+      <div class="hint" id="last"></div>
+    </section>
+
+    <section>
+      <h2>Conectar na live</h2>
+      <div class="row"><input id="user" placeholder="usuario sem @" style="flex:1"><button onclick="connect()">Conectar</button></div>
+    </section>
+
+    <section>
+      <h2>Fila de fala</h2>
+      <div id="fila" class="hint" style="margin:0">vazia</div>
+    </section>
+
+    <section>
+      <h2>Top apoiadores</h2>
+      <table><tbody id="top"></tbody></table>
+      <div class="row" style="margin-top:8px"><button class="sec" onclick="post('/api/reset-score')">Zerar placar</button></div>
+    </section>
+
+    <section>
+      <h2>Simular (teste sem live)</h2>
+      <div class="row">
+        <input id="su" placeholder="usuario" value="Maria" size="8">
+        <input id="sc" placeholder="comentario" value="oi, tudo bem?" style="flex:1;min-width:120px">
+        <button onclick="chat()">Comentar</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <select id="sg"><option value="Tiny Diny|5">Tiny Diny (dança Jamal)</option><option value="Doughnut|30">Donut (dança ConfidenceHolic)</option><option value="Rose|1">Rosa (agradece)</option><option value="Galaxy|1000">Galaxy (outro)</option></select>
+        <button onclick="gift()">Presente</button>
+        <button class="sec" onclick="post('/api/simulate/join', { user: $('su').value, avatar })">Entrar na live</button>
+      </div>
+    </section>
+  </div>
+
+  <section>
+    <h2>Log ao vivo</h2>
+    <div class="chips" id="chips"></div>
+    <div class="row" style="margin-bottom:8px">
+      <label class="chip"><input type="checkbox" id="auto" checked style="margin:0"> rolar automaticamente</label>
+      <button class="sec" onclick="clearLog()">Limpar</button>
+      <button class="sec" onclick="copyLog()">Copiar</button>
+      <span class="hint" id="n" style="margin:0"></span>
+    </div>
+    <div id="logbox"></div>
+  </section>
+</main>
+
+<div class="page" id="tab-ia" hidden>
+  <section>
+    <h2>IA: quem escreve as respostas</h2>
+    <div class="diag" id="d-ia"></div>
+    <div id="f-ia"></div>
+    <div class="row"><button onclick="saveSettings('ia')">Salvar</button><button class="sec" onclick="testIa()">Salvar e testar</button></div>
+    <div class="msg" id="m-ia"></div>
+  </section>
+</div>
+
+<div class="page" id="tab-voz" hidden>
+  <section>
+    <h2>Voz: quem fala</h2>
+    <div class="diag" id="d-voz"></div>
+    <div id="f-voz"></div>
+    <div class="row"><button onclick="saveSettings('voz')">Salvar</button><button class="sec" onclick="testVoice()">Salvar e testar</button></div>
+    <div class="msg" id="m-voz"></div>
+  </section>
+</div>
+
+<div class="page" id="tab-tiktok" hidden>
+  <section>
+    <h2>TikTok e personagem</h2>
+    <div id="f-tiktok"></div>
+    <div class="row"><button onclick="saveSettings('tiktok')">Salvar</button></div>
+    <div class="msg" id="m-tiktok"></div>
+    <div class="hint">Depois de salvar o usuário, use <b>Conectar</b> na aba Painel.</div>
+  </section>
+</div>
+
+<div class="page" id="tab-persona" hidden>
+  <section>
+    <h2>Personalidade do personagem (prompt)</h2>
+    <div class="hint" style="margin:0 0 8px">É o texto que diz à IA quem o personagem é. Com Ollama, a próxima resposta demora ~30 s depois de salvar (o modelo reprocessa o prompt). As regras de fala (sem emojis, resposta curta) são somadas automaticamente.</div>
+    <textarea id="persona" spellcheck="false"></textarea>
+    <div class="row" style="margin-top:8px"><button onclick="savePersona()">Salvar prompt</button><button class="sec" onclick="resetPersona()">Restaurar padrão</button><span class="badge" id="personaBadge"></span></div>
+    <div class="msg" id="m-persona"></div>
+  </section>
+  <section>
+    <h2>Presentes e reações (JSON)</h2>
+    <div class="hint" style="margin:0 0 8px">Liga o nome do presente do TikTok a uma reação: <code>dance</code> (com <code>jamal</code> ou <code>confidenceholic</code>) ou <code>thanks_rose</code> (só agradece).</div>
+    <textarea id="gifts" spellcheck="false" style="min-height:200px"></textarea>
+    <div class="row" style="margin-top:8px"><button onclick="saveGifts()">Salvar presentes</button><button class="sec" onclick="resetGifts()">Restaurar padrão</button><span class="badge" id="giftsBadge"></span></div>
+    <div class="msg" id="m-gifts"></div>
+  </section>
+</div>
+
+<div class="page narrow" id="tab-sobre" hidden>
+  <section>
+    <h2>Sobre</h2>
+    <p><b>Live 3D</b>: personagem 3D que conversa com a sua live do TikTok. Código aberto, criado por <b>Luis Felipe</b>.</p>
+    <p>Ao usar, modificar ou compartilhar este jogo, <b>dê os créditos ao autor</b> e entre na comunidade para ter acesso a mais jogos:</p>
+    <p><a href="https://t.me/+dodaVsUWVoQ0Yjhh" target="_blank" rel="noopener">https://t.me/+dodaVsUWVoQ0Yjhh</a></p>
+    <p class="hint">Suas chaves de API ficam só neste computador, em <code>server/private/settings.json</code>. Elas nunca são mostradas de volta no painel nem enviadas a ninguém além do serviço escolhido.</p>
+  </section>
+</div>
+
+<footer>Live 3D por Luis Felipe · código aberto · <a href="https://t.me/+dodaVsUWVoQ0Yjhh" target="_blank" rel="noopener">comunidade no Telegram</a></footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const post = (p, b = {}) => fetch(p, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(b) });
+const avatar = location.origin + '/test/avatar-teste.png';
+const connect = () => { post('/api/settings', { values: { TIKTOK_USERNAME: $('user').value.replace(/^@/, '').trim() } }).then(() => loadSettings()); return post('/api/connect', { username: $('user').value }); };
+const chat = () => post('/api/simulate/chat', { user: $('su').value, comment: $('sc').value, avatar });
+const gift = () => { const [gift, coins] = $('sg').value.split('|'); post('/api/simulate/gift', { user: $('su').value, gift, coins: +coins, count: 1, avatar }); };
+
+// ---------- status
+function dot(id, state) { $(id).className = 'dot' + (state === 'on' ? ' on' : state === 'wait' ? ' wait' : ''); }
+async function tickStatus() {
+  try {
+    const s = await (await fetch('/api/status')).json();
+    dot('dTk', s.tiktok.listening ? 'on' : s.tiktok.error ? 'off' : 'wait');
+    $('tk').textContent = s.tiktok.listening ? '@' + (s.tiktok.username || '') + ' ao vivo' : (s.tiktok.error || 'sem live conectada');
+    dot('dGd', s.godot ? 'on' : 'off'); $('gd').textContent = s.godot ? 'conectado' : 'abra o Live3D.exe';
+    dot('dIa', s.ia.ready ? 'on' : s.ia.provider === 'Ollama' ? 'wait' : 'off'); $('ia').textContent = s.ia.provider + ' · ' + (s.ia.ready ? s.ia.model : s.ia.provider === 'Ollama' ? 'carregando ' + s.ia.model + '...' : 'falta a chave (aba IA)');
+    const localVoice = s.voice.provider === 'xtts' || s.voice.provider === 'chatterbox'; dot('dVz', localVoice && !s.voice.ready ? 'wait' : 'on'); $('vz').textContent = s.voice.provider === 'sapi' ? 'voz do Windows' : localVoice ? (s.voice.ready ? s.voice.provider + ' pronta' : s.voice.provider + ' carregando (~1 min)...') : s.voice.provider + ' (API)';
+    const ev = s.events || {};
+    for (const k of ['chat','join','gift','like','share','ignored']) $('c_' + k).textContent = ev[k] || 0;
+    $('last').textContent = ev.lastTiktokEventAt ? 'último evento do TikTok há ' + Math.round((Date.now() - ev.lastTiktokEventAt) / 1000) + ' s' : (s.tiktok.listening ? 'conectado, ainda sem eventos' : '');
+    $('up').textContent = 'servidor ligado há ' + Math.floor(s.uptime / 60) + ' min ' + (s.uptime % 60) + ' s';
+    const f = s.speech;
+    $('fila').textContent = (f.current ? 'falando agora: ' + f.current + '\n' : '') + (f.queue.length ? 'na fila (' + f.queue.length + '): ' + f.queue.join(', ') : (f.current ? '' : 'vazia')) + '\nvoz: ' + f.rates.synth + ' s de cálculo por s de áudio | pausa máx. ' + f.rates.maxGap + ' s';
+    $('fila').style.whiteSpace = 'pre-line';
+    $('top').replaceChildren(...s.top.map((u, i) => {
+      const tr = document.createElement('tr');
+      [i + 1, u.displayName, u.points + ' pts'].forEach((v) => { const td = document.createElement('td'); td.textContent = v; tr.append(td); });
+      return tr;
+    }));
+  } catch { dot('dTk','off'); dot('dGd','off'); dot('dIa','off'); dot('dVz','off'); $('tk').textContent = 'servidor fora do ar'; }
+}
+
+// ---------- log
+const TYPES = ['chat','gift','join','like','ia','voz','fala','dança','jogo','placar','tiktok','config','erro'];
+const hidden = new Set(JSON.parse(localStorage.getItem('hiddenTypes') || '[]'));
+const lines = []; let lastId = 0;
+for (const t of TYPES) {
+  const c = document.createElement('label'); c.className = 'chip' + (hidden.has(t) ? ' off' : '');
+  c.innerHTML = '<span class="k-' + t + '">●</span> ' + t;
+  c.onclick = (e) => { e.preventDefault(); hidden.has(t) ? hidden.delete(t) : hidden.add(t); c.classList.toggle('off'); localStorage.setItem('hiddenTypes', JSON.stringify([...hidden])); render(); };
+  $('chips').append(c);
+}
+function lineEl(e) {
+  const d = document.createElement('div'); d.className = 'l ' + e.level; d.dataset.type = e.type;
+  const t = document.createElement('span'); t.className = 't'; t.textContent = new Date(e.t).toLocaleTimeString('pt-BR');
+  const k = document.createElement('span'); k.className = 'k k-' + e.type; k.textContent = e.type;
+  const m = document.createElement('span'); m.className = 'm'; m.textContent = e.msg;
+  d.append(t, k, m); d.hidden = hidden.has(e.type); return d;
+}
+function render() { for (const d of $('logbox').children) d.hidden = hidden.has(d.dataset.type); }
+async function tickLog() {
+  try {
+    const r = await (await fetch('/api/logs?since=' + lastId)).json();
+    if (!r.logs.length) return;
+    const box = $('logbox'); const stick = $('auto').checked;
+    for (const e of r.logs) { lastId = Math.max(lastId, e.id); lines.push(e); box.append(lineEl(e)); }
+    while (box.children.length > 800) box.firstChild.remove();
+    $('n').textContent = box.children.length + ' linhas';
+    if (stick) box.scrollTop = box.scrollHeight;
+  } catch {}
+}
+async function clearLog() { await post('/api/logs/clear'); $('logbox').replaceChildren(); lines.length = 0; }
+function copyLog() { navigator.clipboard.writeText(lines.filter((e) => !hidden.has(e.type)).map((e) => new Date(e.t).toLocaleTimeString('pt-BR') + ' [' + e.type + '] ' + e.msg).join('\n')); }
+setInterval(tickStatus, 1500); setInterval(tickLog, 1000); tickStatus(); tickLog();
+
+// ---------- abas
+const TABS = [['live', 'Painel'], ['ia', 'IA'], ['voz', 'Voz'], ['tiktok', 'TikTok'], ['persona', 'Personagem'], ['sobre', 'Sobre']];
+function showTab(id) {
+  for (const [t] of TABS) { const el = $('tab-' + t); if (el) el.hidden = t !== id; }
+  for (const b of document.querySelectorAll('nav.tabs button[data-tab]')) b.classList.toggle('on', b.dataset.tab === id);
+  try { localStorage.setItem('tab', id); } catch {}
+  if ((id === 'ia' || id === 'voz') && SET) loadDiag();
+}
+for (const [id, name] of TABS) {
+  const b = document.createElement('button'); b.textContent = name; b.dataset.tab = id; b.onclick = () => showTab(id);
+  $('tabs').append(b);
+}
+
+// ---------- configuracoes (montadas a partir do schema do servidor)
+let SET = null;
+const inputsByKey = {};
+const msg = (id, text, ok) => { const el = $('m-' + id); el.textContent = text; el.className = 'msg ' + (ok ? 'ok' : 'bad'); };
+const currentValue = (key) => { const i = (inputsByKey[key] || [])[0]; return i ? (i.type === 'checkbox' ? String(i.checked) : i.value) : ''; };
+
+function updateVisibility() {
+  for (const f of SET.schema) {
+    for (const el of document.querySelectorAll('[data-field="' + f.group + ':' + f.key + '"]')) {
+      el.hidden = !!f.when && !Object.entries(f.when).every(([k, vals]) => vals.includes(currentValue(k)));
+    }
+  }
+}
+
+function buildFields() {
+  for (const g of ['ia', 'voz', 'tiktok']) $('f-' + g).replaceChildren();
+  for (const k of Object.keys(inputsByKey)) delete inputsByKey[k];
+  for (const f of SET.schema) {
+    const wrap = document.createElement('div'); wrap.className = 'field' + (f.type === 'bool' ? ' check' : ''); wrap.dataset.field = f.group + ':' + f.key;
+    const label = document.createElement('label'); label.textContent = f.label;
+    let input;
+    if (f.type === 'select') {
+      input = document.createElement('select');
+      for (const [v, name] of f.options) { const o = document.createElement('option'); o.value = v; o.textContent = name; input.append(o); }
+    } else {
+      input = document.createElement('input');
+      input.type = f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : f.type === 'bool' ? 'checkbox' : 'text';
+      if (f.type === 'number') { if (f.min !== undefined) input.min = f.min; if (f.max !== undefined) input.max = f.max; input.step = f.step || 'any'; }
+      if (f.secret) { input.autocomplete = 'off'; input.placeholder = SET.secretsSet[f.key] ? '•••••• (salva; deixe vazio para manter)' : 'cole a chave aqui'; }
+    }
+    input.dataset.key = f.key;
+    if (f.type === 'bool') { input.checked = !!SET.values[f.key]; label.prepend(input); wrap.append(label); }
+    else {
+      if (!f.secret) input.value = SET.values[f.key] ?? '';
+      wrap.append(label);
+      if (f.secret) {
+        const row = document.createElement('div'); row.className = 'keyrow'; row.append(input);
+        const rm = document.createElement('button'); rm.className = 'sec'; rm.textContent = 'Remover'; rm.type = 'button';
+        rm.onclick = () => saveSettings(f.group, [f.key]);
+        row.append(rm); wrap.append(row);
+      } else wrap.append(input);
+    }
+    if (f.help) { const h = document.createElement('div'); h.className = 'help'; h.textContent = f.help; wrap.append(h); }
+    (inputsByKey[f.key] ||= []).push(input);
+    // a mesma chave aparece em mais de uma aba (ex.: chave da OpenAI): mantem os campos iguais
+    input.addEventListener('input', () => {
+      for (const other of inputsByKey[f.key]) if (other !== input) { if (input.type === 'checkbox') other.checked = input.checked; else other.value = input.value; }
+      updateVisibility();
+    });
+    input.addEventListener('change', () => { updateVisibility(); if (f.key === 'AI_PROVIDER' || f.key === 'TTS_PROVIDER') loadDiag(); });
+    if (f.key === 'OLLAMA_MODEL') input.setAttribute('list', 'ollama-models');
+    $('f-' + f.group).append(wrap);
+  }
+  updateVisibility();
+  renderModels();
+}
+
+// ---------- verificacao do que esta instalado / falta
+let DIAG = null;
+const ICON = { ok: '✅', warn: '⚠️', error: '❌' };
+
+// **negrito** e `codigo` dentro de uma frase (sempre via textContent, nada de innerHTML)
+function rich(parent, text) {
+  for (const part of text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/)) {
+    if (!part) continue;
+    if (part.startsWith('*') && !part.startsWith('**')) { const i = document.createElement('i'); i.textContent = part.slice(1, -1); parent.append(i); }
+    else if (part.startsWith('**')) { const b = document.createElement('b'); b.textContent = part.slice(2, -2); parent.append(b); }
+    else if (part.startsWith('`')) { const c = document.createElement('code'); c.className = 'in'; c.textContent = part.slice(1, -1); parent.append(c); }
+    else parent.append(part);
+  }
+}
+function copyable(parent, command) {
+  const c = document.createElement('code'); c.className = 'cp'; c.textContent = command; c.title = 'Clique para copiar';
+  c.onclick = () => { navigator.clipboard.writeText(command).then(() => { c.title = 'Copiado!'; c.style.borderColor = 'var(--ok)'; setTimeout(() => { c.style.borderColor = ''; c.title = 'Clique para copiar'; }, 1200); }); };
+  parent.append(c);
+}
+
+function renderDiag(group) {
+  const d = DIAG && DIAG[group], box = $('d-' + group);
+  if (!d) return;
+  box.className = 'diag ' + d.level;
+  const head = document.createElement('div'); head.className = 'dh';
+  const t = document.createElement('span'); t.textContent = d.level === 'ok' ? 'Tudo certo para usar esta opção' : 'Verificação: falta algo para funcionar';
+  const re = document.createElement('button'); re.className = 'sec'; re.type = 'button'; re.textContent = 'Verificar de novo'; re.onclick = loadDiag;
+  head.append(t, re);
+  box.replaceChildren(head);
+  for (const it of d.items) {
+    const row = document.createElement('div'); row.className = 'it';
+    const b = document.createElement('b'); b.className = it.level; b.textContent = ICON[it.level] + ' ' + it.title;
+    row.append(b);
+    if (it.detail) { const p = document.createElement('div'); p.className = 'detail'; rich(p, it.detail); row.append(p); }
+    if (it.steps && it.level !== 'ok') {
+      const ol = document.createElement('ol');
+      for (const s of it.steps) {
+        const li = document.createElement('li');
+        for (const line of s.split('\n')) {
+          if (/^`[^`]+`$/.test(line)) copyable(li, line.slice(1, -1)); else { rich(li, line); }
+        }
+        ol.append(li);
+      }
+      row.append(ol);
+    }
+    if (it.link && it.level !== 'ok') {
+      const a = document.createElement('a'); a.href = it.link[0]; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '→ ' + it.link[1];
+      const p = document.createElement('div'); p.className = 'detail'; p.append(a); row.append(p);
+    }
+    box.append(row);
+  }
+}
+
+// modelos que o Ollama tem instalados: clique para escolher
+function renderModels() {
+  const wrap = document.querySelector('[data-field="ia:OLLAMA_MODEL"]');
+  if (!wrap) return;
+  wrap.querySelectorAll('.models, .mh').forEach((e) => e.remove());
+  let dl = $('ollama-models'); if (!dl) { dl = document.createElement('datalist'); dl.id = 'ollama-models'; document.body.append(dl); }
+  const models = (DIAG && DIAG.ia.models) || [];
+  dl.replaceChildren(...models.map((m) => { const o = document.createElement('option'); o.value = m.name; return o; }));
+  if (!models.length) return;
+  const box = document.createElement('div'); box.className = 'models';
+  const input = (inputsByKey.OLLAMA_MODEL || [])[0];
+  for (const m of models) {
+    const c = document.createElement('span'); c.className = 'chip' + (input && input.value === m.name ? ' sel' : '');
+    c.textContent = m.name + ' '; const s = document.createElement('small'); s.textContent = m.size; c.append(s);
+    c.onclick = () => { input.value = m.name; renderModels(); };
+    box.append(c);
+  }
+  const h = document.createElement('div'); h.className = 'help mh'; h.textContent = 'Instalados no seu PC (clique para escolher, depois Salvar):';
+  wrap.append(h, box);
+}
+
+async function loadDiag() {
+  if (!SET) return;
+  const q = new URLSearchParams({ ia: currentValue('AI_PROVIDER'), voz: currentValue('TTS_PROVIDER') });
+  try { DIAG = await (await fetch('/api/diagnostics?' + q)).json(); } catch { return; }
+  renderDiag('ia'); renderDiag('voz'); renderModels();
+}
+// enquanto algo estiver faltando/carregando, confere sozinho (ex.: a voz local terminando de carregar)
+setInterval(() => {
+  const on = !$('tab-ia').hidden ? 'ia' : !$('tab-voz').hidden ? 'voz' : null;
+  if (on && DIAG && DIAG[on].level !== 'ok') loadDiag();
+}, 5000);
+
+async function loadSettings() {
+  SET = await (await fetch('/api/settings')).json();
+  buildFields();
+  if (!$('user').value) $('user').value = SET.values.TIKTOK_USERNAME || '';
+  loadDiag();
+}
+
+async function saveSettings(group, clear = []) {
+  const values = {};
+  for (const f of SET.schema) {
+    const i = (inputsByKey[f.key] || [])[0]; if (!i) continue;
+    values[f.key] = i.type === 'checkbox' ? i.checked : i.value;
+  }
+  try {
+    const r = await (await post('/api/settings', { values, clear })).json();
+    if (!r.ok) { msg(group, (r.errors || ['erro ao salvar']).join('\n'), false); return false; }
+    SET = r; buildFields();
+    msg(group, clear.length ? 'Chave removida.' : r.changed.length ? 'Salvo! Já vale agora, sem reiniciar.' : 'Nada mudou.', true);
+    loadDiag();
+    return true;
+  } catch (e) { msg(group, 'Não consegui falar com o servidor.', false); return false; }
+}
+
+async function testIa() {
+  if (!(await saveSettings('ia'))) return;
+  msg('ia', 'Testando...', true);
+  try {
+    const r = await (await post('/api/test/ia')).json();
+    msg('ia', r.ok ? r.provider + ' (' + r.model + ') respondeu em ' + r.seconds + ' s:\n"' + r.text + '"' : 'Falhou: ' + r.error, r.ok);
+  } catch { msg('ia', 'Não consegui falar com o servidor.', false); }
+}
+
+async function testVoice() {
+  if (!(await saveSettings('voz'))) return;
+  msg('voz', 'Gerando a voz...', true);
+  try {
+    const res = await post('/api/test/voice');
+    if ((res.headers.get('content-type') || '').includes('json')) { const r = await res.json(); return msg('voz', 'Falhou: ' + r.error, false); }
+    const url = URL.createObjectURL(await res.blob());
+    msg('voz', 'Pronto em ' + res.headers.get('x-seconds') + ' s. Tocando...', true);
+    new Audio(url).play().catch(() => msg('voz', 'Gerou, mas o navegador bloqueou o som. Clique em testar de novo.', false));
+  } catch { msg('voz', 'Não consegui falar com o servidor.', false); }
+}
+
+// ---------- personagem e presentes
+async function loadText(kind) {
+  const r = await (await fetch('/api/' + kind)).json();
+  $(kind).value = r.text; $(kind + 'Badge').textContent = r.custom ? 'personalizado' : 'padrão';
+}
+async function saveText(kind, body, okText) {
+  const r = await (await post('/api/' + kind, body)).json();
+  msg(kind, r.ok ? okText : r.error, r.ok);
+  if (r.ok) loadText(kind);
+}
+const savePersona = () => saveText('persona', { text: $('persona').value }, 'Prompt salvo.');
+const resetPersona = () => saveText('persona', { reset: true }, 'Voltou ao padrão.');
+const saveGifts = () => saveText('gifts', { text: $('gifts').value }, 'Presentes salvos.');
+const resetGifts = () => saveText('gifts', { reset: true }, 'Voltou ao padrão.');
+
+loadSettings(); loadText('persona'); loadText('gifts');
+let startTab = 'live'; try { startTab = localStorage.getItem('tab') || 'live'; } catch {}
+showTab(TABS.some(([t]) => t === startTab) ? startTab : 'live');
+</script>
+</body>
+</html>

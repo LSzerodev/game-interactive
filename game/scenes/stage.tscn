@@ -1,0 +1,61 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/stage.gd" id="1_stage"]
+[ext_resource type="Texture2D" path="res://assets/sky/sky.jpg" id="2_sky"]
+[ext_resource type="PackedScene" path="res://assets/models/island.fbx" id="3_island"]
+[ext_resource type="PackedScene" path="res://assets/models/palm.glb" id="4_palm"]
+[ext_resource type="PackedScene" path="res://assets/models/rocks.glb" id="5_rocks"]
+[ext_resource type="Script" path="res://scripts/character.gd" id="6_char"]
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 1
+background_color = Color(0.55, 0.75, 0.95, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.78, 0.86, 1, 1)
+ambient_light_energy = 0.35
+tonemap_mode = 2
+
+[node name="Stage" type="Node3D"]
+script = ExtResource("1_stage")
+sky_photo = ExtResource("2_sky")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 12, 0)
+light_color = Color(1, 0.94, 0.84, 1)
+light_energy = 0.95
+shadow_enabled = true
+
+[node name="Fill" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, 0.12941, -0.482963, 0, 0.965926, 0.258819, 0.5, -0.224144, 0.836516, 0, 6, 0)
+light_color = Color(0.62, 0.72, 1, 1)
+light_energy = 0.25
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4, 19.2)
+fov = 35.0
+current = true
+
+[node name="Island" type="Node3D" parent="."]
+
+[node name="IslandModel" parent="Island" instance=ExtResource("3_island")]
+
+[node name="Palm" parent="." instance=ExtResource("4_palm")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 5.2, 0, -5.5)
+
+[node name="RockLeft" type="Node3D" parent="."]
+transform = Transform3D(0.55, 0, 0, 0, 0.55, 0, 0, 0, 0.55, -4.1, 0, -0.8)
+
+[node name="Model" parent="RockLeft" instance=ExtResource("5_rocks")]
+
+[node name="RockRight" type="Node3D" parent="."]
+transform = Transform3D(0.45, 0, 0, 0, 0.45, 0, 0, 0, 0.45, 4.3, 0, -0.4)
+
+[node name="Model" parent="RockRight" instance=ExtResource("5_rocks")]
+
+[node name="Grass" type="MultiMeshInstance3D" parent="."]
+
+[node name="Character" type="Node3D" parent="."]
+script = ExtResource("6_char")
