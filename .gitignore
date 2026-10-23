@@ -10,9 +10,7 @@ server/runs/
 server/assets/
 server/voice/*.log
 
-# arquivos de trabalho do autor (fontes de modelos, áudios de voz, mockups)
-audio-wav/
-audio-game/
+# arquivos de trabalho do autor (fontes de modelos, mockups)
 personagens,assets, etc/
 ref-game-3d/
 
@@ -30,6 +28,7 @@ server/voice/*.wav
 *.log
 *.wav
 !game/**/*.wav
+!audio-wav/*.wav
 *.pem
 *.key
 *.pfx
