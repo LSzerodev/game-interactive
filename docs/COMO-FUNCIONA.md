@@ -1,16 +1,3 @@
-# Como funciona
-
-```
-TikTok Live ─► tiktok-live-connector ─► director ─► fila de ações (1 por vez)
-                                           │            │
-                              TOP 5 ◄──────┤      speech: Ollama → TTS (WAV)
-                                           │              → envelope da boca
-                                           │      dance : música + dança
-                                           ▼            │
-                                WebSocket ws://127.0.0.1:9393/ws/godot
-                                           │
-                     Godot: toca a voz/música, boca, aceno, danças, HUD
-```
 
 ## IA e resposta em chunks (`ai.js`, `speech.js`)
 
