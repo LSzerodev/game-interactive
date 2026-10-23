@@ -5,7 +5,7 @@
 **Um personagem 3D que conversa com a sua live do TikTok.**
 Ele lê os comentários, responde **falando com a boca sincronizada**, dança quando chega presente e dá boas-vindas a quem entra.
 
-Feito com **Godot 4** + **Node.js** · Código aberto · Criado por **Luis Felipe**
+Feito com **Godot 4** + **Node.js** · Código aberto · Criado por **@LSzerodev**
 
 [![Comunidade no Telegram](https://img.shields.io/badge/Telegram-entrar%20na%20comunidade-26A5E4?logo=telegram&logoColor=white)](https://t.me/+dodaVsUWVoQ0Yjhh)
 
