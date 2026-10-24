@@ -201,4 +201,29 @@ async function test() {
   return { file: out, seconds: +((Date.now() - t) / 1000).toFixed(1), provider };
 }
 
-module.exports = { synthesize, prepareText, test };
+// Cada fala gera um WAV (e um .txt, na voz do Windows) em runs/audio. Numa live longa isso enche o disco:
+// apaga o que tem mais de 30 min (o jogo toca cada audio logo depois de gerado).
+function cleanOldAudio(maxAgeMs = 30 * 60 * 1000) {
+  let files;
+  try {
+    files = fs.readdirSync(cfg.AUDIO_DIR);
+  } catch {
+    return 0;
+  }
+  let removed = 0;
+  for (const f of files) {
+    if (!/\.(wav|txt)$/i.test(f)) continue;
+    const p = path.join(cfg.AUDIO_DIR, f);
+    try {
+      if (Date.now() - fs.statSync(p).mtimeMs > maxAgeMs) {
+        fs.unlinkSync(p);
+        removed++;
+      }
+    } catch {
+      /* em uso ou ja apagado: tenta na proxima */
+    }
+  }
+  return removed;
+}
+
+module.exports = { synthesize, prepareText, test, cleanOldAudio };

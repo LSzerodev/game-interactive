@@ -30,14 +30,31 @@ function load() {
     /* primeira execucao */
   }
 }
-function save() {
-  fs.mkdirSync(RUNS_DIR, { recursive: true });
-  fs.writeFileSync(FILE, JSON.stringify(state, null, 2));
+// Gravar o arquivo a cada curtida travava o servidor em lives cheias (centenas de curtidas por segundo)
+// e um erro de disco (antivirus, pasta so de leitura) derrubava tudo. Agora agrupa as gravacoes e nunca lanca erro.
+let saveTimer = null;
+function writeNow() {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+  try {
+    fs.mkdirSync(RUNS_DIR, { recursive: true });
+    fs.writeFileSync(FILE, JSON.stringify(state, null, 2));
+  } catch (e) {
+    console.error(`nao consegui gravar o placar: ${e.message}`);
+  }
 }
+function save() {
+  if (saveTimer) return;
+  saveTimer = setTimeout(writeNow, 1500);
+  saveTimer.unref();
+}
+process.on('exit', () => saveTimer && writeNow());
 function reset() {
   state = { users: {}, normalSinceTop: 0, lastTopKey: '' };
   dirty = true;
-  save();
+  writeNow();
 }
 
 function userKey(u) {

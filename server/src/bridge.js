@@ -12,8 +12,13 @@ class Bridge extends EventEmitter {
   }
 
   attach(httpServer) {
-    const wss = new WebSocketServer({ server: httpServer, path: '/ws/godot' });
+    // O jogo (Godot) nao manda Origin. Quem manda e navegador: so aceita se a pagina for este proprio servidor,
+    // senao qualquer site aberto no navegador tomaria o lugar do jogo.
+    const verifyClient = ({ origin }) => !origin || /^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(origin);
+    const wss = new WebSocketServer({ server: httpServer, path: '/ws/godot', verifyClient });
+    wss.on('error', (e) => console.error(`ponte do jogo: ${e.message}`));
     wss.on('connection', (ws) => {
+      ws.on('error', (e) => console.error(`ponte do jogo: ${e.message}`));
       // um unico renderizador oficial por vez
       if (this.socket && this.socket.readyState === 1) this.socket.close();
       this.socket = ws;
@@ -45,7 +50,11 @@ class Bridge extends EventEmitter {
 
   send(msg) {
     if (!this.connected) return false;
-    this.socket.send(JSON.stringify({ time: Date.now() / 1000, ...msg }));
+    try {
+      this.socket.send(JSON.stringify({ time: Date.now() / 1000, ...msg }));
+    } catch {
+      return false;
+    }
     return true;
   }
 }

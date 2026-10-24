@@ -24,7 +24,12 @@ const json = (res, code, body) => {
 const readBody = (req) =>
   new Promise((resolve) => {
     let s = '';
-    req.on('data', (c) => (s += c));
+    req.on('data', (c) => {
+      s += c;
+      if (s.length > 2e6) req.destroy(); // nenhuma configuracao do painel chega perto disso
+    });
+    req.on('error', () => resolve({}));
+    req.on('close', () => resolve({}));
     req.on('end', () => {
       try {
         resolve(JSON.parse(s || '{}'));
@@ -62,8 +67,18 @@ function trusted(req) {
   return !origin || ok.has(origin.replace(/^https?:\/\//, ''));
 }
 
-const server = http.createServer(async (req, res) => {
-  const url = new URL(req.url, 'http://x');
+// Erro solto (rede, biblioteca do TikTok, API de IA/voz) nunca pode derrubar o servidor da live:
+// registra no log e segue funcionando.
+process.on('uncaughtException', (e) => log.error('erro', `erro inesperado (o servidor continua): ${(e && e.stack) || e}`));
+process.on('unhandledRejection', (e) => log.error('erro', `falha inesperada (o servidor continua): ${(e && e.stack) || e}`));
+
+async function handle(req, res) {
+  let url;
+  try {
+    url = new URL(req.url, 'http://x');
+  } catch {
+    return json(res, 400, { error: 'endereço inválido' });
+  }
   if (!trusted(req)) return json(res, 403, { error: 'origem não permitida' });
   if (req.method === 'GET' && url.pathname === '/') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -212,6 +227,20 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, { ok: true });
   }
   json(res, 404, { error: 'not found' });
+}
+
+const server = http.createServer(async (req, res) => {
+  try {
+    await handle(req, res);
+  } catch (e) {
+    log.error('erro', `falha em ${req.method} ${String(req.url).slice(0, 80)}: ${e.message}`);
+    if (!res.headersSent) json(res, 500, { error: 'erro interno' });
+    else res.end();
+  }
+});
+server.on('error', (e) => {
+  if (e.code === 'EADDRINUSE') log.error('tiktok', `a porta ${cfg.PORT} já está em uso (outro Live 3D aberto?). Feche o outro ou mude PORT no .env.`);
+  else log.error('tiktok', `erro no servidor: ${e.message}`);
 });
 
 bridge.attach(server);
@@ -220,6 +249,8 @@ server.listen(cfg.PORT, '127.0.0.1', () => {
   log.info('tiktok', 'Live 3D, código aberto por Luis Felipe. Mais jogos na comunidade: https://t.me/+dodaVsUWVoQ0Yjhh');
   ai.warmup();
   voiceService.start();
+  tts.cleanOldAudio();
+  setInterval(() => tts.cleanOldAudio(), 10 * 60 * 1000).unref();
   if (cfg.TIKTOK_USERNAME) {
     monitor.start(cfg.TIKTOK_USERNAME).catch((e) => log.error('tiktok', e.message));
   } else {
