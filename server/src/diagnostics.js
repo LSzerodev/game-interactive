@@ -115,6 +115,31 @@ function logTail(engine, lines = 8) {
   }
 }
 
+// Servidor de voz parado: lê o log e, se reconhece o erro, diz o que fazer (senão mostra as linhas do erro)
+function stoppedItem(engine, name) {
+  const tail = logTail(engine);
+  const venv = `server\\voice\\venv-${engine}\\Scripts\\python.exe`;
+  if (/torchcodec|From Pytorch 2\.9/i.test(tail)) {
+    return item('error', 'O PyTorch instalado é novo demais para o XTTS', {
+      detail: 'O XTTS ainda não funciona com o PyTorch 2.9 ou mais novo. Volte para o 2.8.0 (a versão testada).',
+      log: tail,
+      steps: ['Cole no PowerShell, na pasta do jogo:', `\`${venv} -m pip install torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cpu\``, 'Depois clique em **Salvar e testar**.', 'Ou apague `server\\voice\\venv-xtts` e rode o `setup_voice.ps1 xtts` da versão mais nova do jogo (ele já instala o certo).'],
+    });
+  }
+  if (/No module named/i.test(tail)) {
+    return item('error', `O ${name} está com a instalação incompleta`, {
+      detail: 'Falta um pacote dentro do ambiente de voz.',
+      log: tail,
+      steps: [`Apague a pasta \`server\\voice\\venv-${engine}\` e rode de novo:`, '`cd server\\voice`', `\`powershell -ExecutionPolicy Bypass -File .\\setup_voice.ps1 ${engine}\``, 'Espere aparecer **Pronto**.'],
+    });
+  }
+  return item('warn', `O servidor de voz ${name} não está rodando`, {
+    detail: 'Ele sobe sozinho ao salvar. O motivo costuma estar nas últimas linhas do log:',
+    log: tail || undefined,
+    steps: [`Log completo: \`server\\voice\\${engine}.log\``, 'Clique em **Salvar e testar** para tentar subir de novo.'],
+  });
+}
+
 async function localVoice(engine) {
   const name = engine === 'xtts' ? 'XTTS' : 'Chatterbox';
   const items = [];
@@ -171,11 +196,7 @@ async function localVoice(engine) {
   else if (items.every((i) => i.level === 'ok')) {
     items.push(st.running
       ? item('warn', `${name} está carregando o modelo`, { detail: 'Na primeira vez baixa alguns GB e leva alguns minutos. Depois leva cerca de 1 minuto.', steps: ['Aguarde e clique em **Verificar de novo**.'] })
-      : item('warn', `O servidor de voz ${name} não está rodando`, {
-        detail: 'Ele sobe sozinho ao salvar. O motivo costuma estar nas últimas linhas do log:',
-        log: logTail(engine) || undefined,
-        steps: [`Log completo: \`server\\voice\\${engine}.log\``, 'Clique em **Salvar e testar** para tentar subir de novo.'],
-      }));
+      : stoppedItem(engine, name));
   }
   return { items, level: worst(items) };
 }
