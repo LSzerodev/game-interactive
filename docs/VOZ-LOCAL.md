@@ -37,3 +37,14 @@ Aba **Voz** → *Quem fala* = XTTS ou Chatterbox → confira o caminho do áudio
 O servidor de voz sobe sozinho junto com o painel (o modelo leva ~1 minuto para carregar; o painel mostra "carregando"). Se a voz local falhar, aquela fala sai com a voz do Windows para a live não ficar muda.
 
 Mais medições e ajustes de velocidade: [AJUSTES-E-DESEMPENHO.md](AJUSTES-E-DESEMPENHO.md).
+
+## Problemas comuns da voz local
+
+| O que aparece | Causa | O que fazer |
+|---|---|---|
+| Painel: **"não está instalado direito"**, ou no log `ModuleNotFoundError: No module named 'TTS'` | O ambiente `venv-xtts` foi criado, mas a instalação do pacote parou no meio (internet, espaço em disco ou Python errado) | Apague a pasta `server\voice\venv-xtts` e rode `setup_voice.ps1 xtts` de novo, **esperando aparecer "Pronto"** |
+| O script diz `Precisa do Python 3.11` | O Python não está instalado, ou é o 3.12 ou mais novo (a voz local **não funciona** com ele) | Instale o [Python 3.11](https://www.python.org/downloads/release/python-3119/) marcando *Add python.exe to PATH*; ele pode ficar junto de outro Python |
+| O script termina com `ERRO: Falhou: ...` | Um passo da instalação falhou | O texto completo fica em `server\voice\install.log`; mande na comunidade para pedir ajuda |
+| Painel: *"O servidor de voz não está rodando"* | O Python do motor caiu ao subir | O painel mostra as últimas linhas do erro; o log completo é `server\voice\xtts.log` |
+
+Em qualquer caso a live **não fica muda**: se a voz local falhar, aquela fala sai com a voz do Windows.

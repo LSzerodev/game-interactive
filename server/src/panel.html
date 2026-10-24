@@ -51,6 +51,7 @@
   .diag .dh { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; color:var(--mut); font-size:12px }
   .diag .it { margin:8px 0 } .diag .it b.ok { color:var(--ok) } .diag .it b.warn { color:var(--warn) } .diag .it b.error { color:var(--bad) }
   .diag .detail { color:var(--mut); font-size:12.5px; margin:2px 0 0 22px }
+  .diag pre { margin:6px 0 0 22px; padding:6px 8px; background:#0b0d11; border:1px solid var(--line); border-radius:6px; font:12px/1.4 ui-monospace,Consolas,monospace; color:var(--bad); white-space:pre-wrap; word-break:break-word; max-height:180px; overflow:auto }
   .diag ol { margin:6px 0 0 22px; padding-left:18px; font-size:13px } .diag li { margin:3px 0 }
   code.cp { display:block; margin:4px 0; padding:5px 8px; background:#0b0d11; border:1px solid var(--line); border-radius:6px; font:12.5px ui-monospace,Consolas,monospace; cursor:copy; white-space:pre-wrap; word-break:break-all }
   code.cp:hover { border-color:var(--info) } code.in { background:#0b0d11; padding:1px 5px; border-radius:4px; font:12.5px ui-monospace,Consolas,monospace }
@@ -360,6 +361,7 @@ function renderDiag(group) {
     const b = document.createElement('b'); b.className = it.level; b.textContent = ICON[it.level] + ' ' + it.title;
     row.append(b);
     if (it.detail) { const p = document.createElement('div'); p.className = 'detail'; rich(p, it.detail); row.append(p); }
+    if (it.log && it.level !== 'ok') { const pre = document.createElement('pre'); pre.textContent = it.log; row.append(pre); }
     if (it.steps && it.level !== 'ok') {
       const ol = document.createElement('ol');
       for (const s of it.steps) {

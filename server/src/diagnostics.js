@@ -93,12 +93,48 @@ async function python311() {
 
 const venvPython = (engine) => path.join(cfg.VOICE_DIR, `venv-${engine}`, 'Scripts', 'python.exe');
 
+// O pacote do motor (XTTS = "TTS", Chatterbox = "chatterbox") esta mesmo instalado no ambiente?
+// Guarda so o "sim" por 1 min (o painel confere a cada 5 s); o "nao" e sempre conferido de novo.
+const moduleOk = new Map();
+async function hasModule(engine) {
+  if (Date.now() - (moduleOk.get(engine) || 0) < 60000) return true;
+  const mod = engine === 'xtts' ? 'TTS' : 'chatterbox';
+  const out = await run(venvPython(engine), ['-c', `import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('${mod}') else 1)`]);
+  if (out === null) return false;
+  moduleOk.set(engine, Date.now());
+  return true;
+}
+
+// Ultimas linhas do log do servidor de voz (o erro real de quando ele nao sobe)
+function logTail(engine, lines = 8) {
+  try {
+    const text = fs.readFileSync(path.join(cfg.VOICE_DIR, `${engine}.log`), 'utf8').trimEnd().split(/\r?\n/);
+    return text.slice(-lines).join('\n').slice(-1200);
+  } catch {
+    return '';
+  }
+}
+
 async function localVoice(engine) {
   const name = engine === 'xtts' ? 'XTTS' : 'Chatterbox';
   const items = [];
 
   if (fs.existsSync(venvPython(engine))) {
-    items.push(item('ok', `${name} instalado (ambiente venv-${engine})`));
+    if (await hasModule(engine)) items.push(item('ok', `${name} instalado (ambiente venv-${engine})`));
+    else {
+      // a pasta do ambiente existe, mas o pacote de voz nao esta dentro dela: a instalacao falhou ou foi interrompida
+      items.push(item('error', `O ${name} não está instalado direito`, {
+        detail: `O ambiente venv-${engine} existe, mas o pacote de voz não está dentro dele. A instalação foi interrompida ou deu erro (comum com Python diferente do 3.11, internet caindo ou pouco espaço em disco).`,
+        steps: [
+          'Confira que o **Python 3.11** está instalado (não serve o 3.12 ou mais novo): https://www.python.org/downloads/release/python-3119/',
+          'Apague a pasta do ambiente: ' + `\`rmdir /s /q server\\voice\\venv-${engine}\``,
+          'Instale de novo e **espere até aparecer "Pronto"**:',
+          `\`cd server\\voice\``,
+          `\`powershell -ExecutionPolicy Bypass -File .\\setup_voice.ps1 ${engine}\``,
+          'Se der erro, o texto completo fica em `server\\voice\\install.log`. Mande na comunidade para pedir ajuda.',
+        ],
+      }));
+    }
   } else {
     const py = await python311();
     const steps = [];
@@ -135,7 +171,11 @@ async function localVoice(engine) {
   else if (items.every((i) => i.level === 'ok')) {
     items.push(st.running
       ? item('warn', `${name} está carregando o modelo`, { detail: 'Na primeira vez baixa alguns GB e leva alguns minutos. Depois leva cerca de 1 minuto.', steps: ['Aguarde e clique em **Verificar de novo**.'] })
-      : item('warn', `O servidor de voz ${name} não está rodando`, { detail: 'Ele sobe sozinho ao salvar. Se não subiu, veja o motivo no log.', steps: [`Log: \`server\\voice\\${engine}.log\``, 'Clique em **Salvar e testar** para tentar subir de novo.'] }));
+      : item('warn', `O servidor de voz ${name} não está rodando`, {
+        detail: 'Ele sobe sozinho ao salvar. O motivo costuma estar nas últimas linhas do log:',
+        log: logTail(engine) || undefined,
+        steps: [`Log completo: \`server\\voice\\${engine}.log\``, 'Clique em **Salvar e testar** para tentar subir de novo.'],
+      }));
   }
   return { items, level: worst(items) };
 }
