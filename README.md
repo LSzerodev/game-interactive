@@ -66,6 +66,8 @@ Tudo isso você escolhe **no painel**, sem editar arquivo nenhum.
 
 ### 2. Rode
 
+> ✅ **Primeiro, dê dois cliques em `verificar.bat`.** Ele confere se o seu PC tem tudo (Node.js, internet, pasta correta, porta livre, Ollama) e diz **o que falta e como resolver**. Não instala nem muda nada.
+
 **Opção A, dois cliques:** abra o `Live3D.exe`. Ele sobe o servidor sozinho (na 1ª vez instala as dependências, pode levar um minuto) e o encerra quando você fecha a janela. O log fica em `server\runs\server.log`.
 
 **Opção B, pelo PowerShell** (a partir do código-fonte):
@@ -134,6 +136,7 @@ O `.exe` **não leva o servidor junto**: mantenha a pasta `server\` ao lado dele
 
 | Sintoma | O que fazer |
 |---|---|
+| O painel não abre ou o jogo não sobe o servidor | rode o `verificar.bat`: ele mostra o que falta (quase sempre o **Node.js 20+**, ou o ZIP não foi extraído) |
 | O painel diz **"abra o Live3D.exe"** | o jogo não conectou; abra o jogo (ele usa a porta 9393) |
 | **IA** em amarelo/vermelho | Ollama fechado, ou falta a chave da API: aba **IA** → *Salvar e testar* mostra o motivo |
 | O personagem responde frases prontas ("mensagem recebida...") | a IA falhou; veja o log do painel (linhas laranja/vermelhas) |
