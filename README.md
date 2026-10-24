@@ -70,7 +70,9 @@ Tudo isso você escolhe **no painel**, sem editar arquivo nenhum.
 
 **Opção A, dois cliques:** abra o `Live3D.exe`. Ele sobe o servidor sozinho (na 1ª vez instala as dependências, pode levar um minuto) e o encerra quando você fecha a janela. O log fica em `server\runs\server.log`.
 
-**Opção B, pelo PowerShell** (a partir do código-fonte):
+**Opção B, servidor separado (recomendada para lives):** dê dois cliques em `iniciar_servidor.bat`. Ele abre uma janela que **mostra o que o servidor está fazendo** (erros incluídos), abre o painel no navegador e **reinicia sozinho** se cair. Depois abra o `Live3D.exe`: ele vê que o servidor já está no ar e não sobe outro. Fechar o jogo **não** derruba o servidor; para parar, feche a janela do servidor.
+
+**Opção C, pelo PowerShell** (a partir do código-fonte):
 ```powershell
 .\start.ps1
 ```
@@ -78,7 +80,7 @@ Abre o servidor e o painel. Para abrir também o jogo pelo Godot, defina antes `
 
 ### 3. Configure pelo painel
 
-Abra **http://127.0.0.1:9393** (abre sozinho na opção B). Nas abas:
+Abra **http://127.0.0.1:9393** (abre sozinho nas opções B e C). Nas abas:
 
 | Aba | O que configura |
 |---|---|
